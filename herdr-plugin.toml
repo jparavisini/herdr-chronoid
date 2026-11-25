@@ -1,0 +1,37 @@
+id = "herdr-chronoid"
+name = "Herdr Chronoid"
+version = "0.1.0"
+min_herdr_version = "0.8.0"
+description = "Per-pane time reporting into Chronoid: billable attention, plus agent runtime off the billable books."
+platforms = ["macos"]
+
+[[build]]
+command = ["cargo", "build", "--release"]
+
+[[startup]]
+command = ["sh", "-c", "exec \"$HERDR_PLUGIN_ROOT/target/release/herdr-chronoid\" startup"]
+
+# The daemon holds the clocks itself. This hook only notices that it died, and
+# costs a pid check when it is alive.
+[[events]]
+id = "chronoid-keepalive"
+on = "pane.agent_status_changed"
+command = ["sh", "-c", "exec \"$HERDR_PLUGIN_ROOT/target/release/herdr-chronoid\" startup >/dev/null"]
+
+[[actions]]
+id = "status"
+title = "Show Chronoid tracking status"
+command = ["sh", "-c", "exec \"$HERDR_BIN_PATH\" plugin pane open --plugin herdr-chronoid --entrypoint status --focus"]
+
+[[actions]]
+id = "restart"
+title = "Restart Chronoid tracking daemon"
+command = ["sh", "-c", "pkill -f 'herdr-chronoid daemon'; exec \"$HERDR_PLUGIN_ROOT/target/release/herdr-chronoid\" startup"]
+
+[[panes]]
+id = "status"
+title = "Chronoid tracking"
+command = ["sh", "-c", "\"$HERDR_PLUGIN_ROOT/target/release/herdr-chronoid\" status; printf '\\npress any key '; read -r _"]
+placement = "popup"
+width = 84
+height = 26
